@@ -17,11 +17,11 @@
     button{padding:10px 14px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--accent),#b86ce0);color:white;cursor:pointer;font-weight:600}
     .error{color:#d23a4a;margin-top:10px}
     .message{white-space:pre-wrap;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(90deg,#fff6fb,#fffef7);padding:18px;border-radius:12px;margin-top:16px;border:1px solid rgba(0,0,0,.03);color:#222}
-    .cake{font-size:36px;text-align:center;margin-top:18px;line-height:1.1}
+    .cake{font-size:42px;text-align:center;margin-top:18px;line-height:1.1;white-space:pre-wrap}
     .center{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
     .hidden{display:none}
     .finalTitle{font-size:22px;margin:0}
-    .finalText{color:var(--muted);margin-top:8px}
+    .finalText{color:var(--muted);margin-top:8px;white-space:pre-wrap}
     .confetti-piece{position:fixed;pointer-events:none;z-index:9999;top:-10px;opacity:0.95}
     @keyframes fall {to{transform:translateY(110vh) rotate(360deg)}}
     @media (max-width:420px){ .card{padding:18px} input[type=text]{padding:10px} button{padding:10px 12px} }
@@ -37,10 +37,10 @@
             <p>This is a small birthday surprise prepared by Arshia. Just type your first-name and open it.</p>
             <div id="step1">
               <div class="form">
-                <input id="nameInput" name="name" type="text" placeholder="Your name ..." autocomplete="off" required>
+                <input id="nameInput" name="name" type="text" placeholder="name..." autocomplete="off" required>
                 <button id="openBtn" type="button">Open</button>
               </div>
-              <div id="err" class="error hidden">This page is not for you.</div>
+              <div id="err" class="error hidden">This page is not for you 😏.</div>
             </div>
           </div>
         </div>
@@ -49,7 +49,7 @@
       <div id="step2" class="hidden">
         <div class="message" id="messageBlock"></div>
         <div class="center">
-          <button id="blowBtn" type="button">Blow out the candles</button>
+          <button id="blowBtn" type="button">Make a wish and blow out the candles!</button>
         </div>
         <div class="cake" id="cakeBlock"></div>
       </div>
@@ -64,33 +64,53 @@
   </div>
 
   <script>
+
+    const FULL = {
+      fatemeh: `Happy Birthday, Fatemeh 🥳
+
+It's been so great getting to know you in our class. You're a wonderful friend. 
+I hope you have an amazing day and a fantastic year ahead, full of happiness, health, and success!
+
+Best wishes 💫, Arshia`,
+
+      mohammad: `Happy Birthday, Mohammad Hassan 🎉
+
+Man, it's been fun having you in class all this time. You're a great guy! 
+Wishing you a very happy birthday and an awesome year. Hope it's filled with good times and new achievements.
+
+Cheers 🥂, Arshia`
+    };
+
+    const PREVIEW = {
+      fatemeh: `Dear Fatemeh,
+
+You found it!, Make a wish, and press the button below.`,
+      mohammad: `Dear Mohammad Hassan,
+
+You found it! Make a wish, and press the button below.`
+    };
+
     const MESSAGES = {
       fatemeh: {
         title: 'Happy Birthday, Fatemeh 🎉',
-        message: `Dear Fatemeh,
-
-Wishing you a relaxed and joyful birthday. I hope the year ahead brings you good moments, new experiences, and people who make you smile. Enjoy your day!
-
-Arshia`,
+        preview: PREVIEW.fatemeh,
+        full: FULL.fatemeh,
         cake: '🎂\n🕯️🕯️🕯️',
         finalCake: '🎂🎁🧁',
         confettiColors: ['#FF6FB5','#FFD2EA','#FFCC4D','#FFD6F0']
       },
       mohammad: {
         title: 'Happy Birthday, Mohammad Hassan 🎊',
-        message: `Dear Mohammad Hassan,
-
-Happy birthday! Wishing you a calm and cheerful day and a year filled with success and memorable moments. Enjoy the celebration — you deserve it.
-
-Arshia`,
-        cake: '🍰\n🕯️🕯️🕯️',
+        preview: PREVIEW.mohammad,
+        full: FULL.mohammad,
+        cake: '🍰\n🕯️🕯️',
         finalCake: '🍰🎉🥂',
         confettiColors: ['#7CE3B6','#9AD2FF','#C89BFF','#FFD66B']
       }
     };
 
-    const fatemehKeys = new Set(['fatemeh','فاطمه','fãtemeh','fatma']);
-    const mohKeys = new Set(['mohammad hassan','mohammadhassan','mohammad','mohammadhasan','mohammad hassan','mohammad hasson','mohamad','محمد حسن','محمد']);
+    const fatemehKeys = new Set(['fatemeh','فاطمه','fãtemeh','fatma','fateme']);
+    const mohKeys = new Set(['mohammad hassan','mohammadhassan','mohammad','mohammadhasan','mohamad','محمد حسن','محمد','moham']);
 
     function normalize(s){ return String(s||'').trim().toLowerCase().replace(/\u200c/g,' ').replace(/\s+/g,' ').normalize('NFKC') }
 
@@ -119,7 +139,7 @@ Arshia`,
       q('intro').classList.add('hidden');
       q('step2').classList.remove('hidden');
       const data = MESSAGES[matched];
-      q('messageBlock').textContent = data.message;
+      q('messageBlock').textContent = data.preview;
       q('cakeBlock').textContent = data.cake;
       q('openBtn').disabled = true;
       q('openBtn').dataset.matched = matched;
@@ -131,9 +151,10 @@ Arshia`,
       const matched = q('openBtn').dataset.matched || matchName(q('nameInput').value) || 'fatemeh';
       const data = MESSAGES[matched];
       q('finalTitle').textContent = data.title;
-      q('finalText').textContent = data.message.replace(/\n—.*/s,'').trim();
+      q('finalText').textContent = data.full;
       q('smallCake').textContent = data.finalCake;
       launchConfetti(data.confettiColors);
+      q('blowBtn').disabled = true;
     });
 
     (function(){
