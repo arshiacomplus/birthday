@@ -1,3 +1,4 @@
+# Demo: https://arshiastest.pythonanywhere.com
 from flask import Flask, request, render_template_string, redirect, url_for
 
 app = Flask(__name__)
@@ -9,7 +10,7 @@ MESSAGES = {
         "message": """Happy Birthday, Fatemeh 🥳
 
 It's been so great getting to know you in our class. You're a wonderful friend. 
-I hope you have an amazing day and a fantastic year ahead, full of happiness, health, and success ✨💛"""
+I hope you have an amazing day and a fantastic year ahead, full of happiness, health, and success ✨💛""",
     },
     "mohammad_hassan": {
         "name": "Mohammad Hassan",
@@ -18,8 +19,8 @@ I hope you have an amazing day and a fantastic year ahead, full of happiness, he
 Man, it's been fun having you in class all this time. You're a great guy. 
 Wishing you a very happy birthday and an awesome year. Hope it's filled with good times and new achievements.
         
-Cheers 🤍🍻"""
-    }
+Cheers 🤍🍻""",
+    },
 }
 
 LOGIN_HTML = """
@@ -50,8 +51,11 @@ LOGIN_HTML = """
       0%, 100% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
     }
-    .confetti { position: absolute; width: 10px; height: 10px; background: #f0f; opacity: 0.7; animation: fall linear infinite; }
-    @keyframes fall { to { transform: translateY(100vh) rotate(360deg); } }
+    .confetti { position: absolute; width: 10px; height: 10px; background: #f0f; opacity: 0.8; animation: fall linear infinite; top: 0; pointer-events: none; }
+    @keyframes fall { 
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(100vh) rotate(720deg); } 
+    }
     .card {
       width: 100%;
       max-width: 400px;
@@ -59,7 +63,6 @@ LOGIN_HTML = """
       padding: 32px 24px;
       border-radius: 20px;
       box-shadow: 0 15px 40px rgba(0,0,0,0.2);
-      animation: fadeInUp 0.8s ease-out;
       backdrop-filter: blur(20px);
       border: 2px solid rgba(255,255,255,0.3);
     }
@@ -157,13 +160,14 @@ LOGIN_HTML = """
     {% endif %}
   </div>
   <script>
-    for(let i=0;i<30;i++){
+    for(let i=0;i<70;i++){
       const c=document.createElement('div');
       c.className='confetti';
       c.style.left=Math.random()*100+'%';
+      c.style.top = Math.random() * -20 + 'px';
       c.style.background=['#ff6b6b','#4ecdc4','#ffe66d','#a8e6cf','#ffd3b6'][Math.floor(Math.random()*5)];
-      c.style.animationDuration=(Math.random()*3+2)+'s';
-      c.style.animationDelay=Math.random()*5+'s';
+      c.style.animationDuration=(Math.random()*4+3)+'s';
+      c.style.animationDelay=Math.random()*3+'s';
       document.body.appendChild(c);
     }
   </script>
@@ -287,15 +291,15 @@ GREET_HTML = """
 </style>
 </head>
 <body>
-  <div class="balloon" style="top:10%;left:5%;animation-delay:1s;">🎈</div>
+  <div class="balloon" style="top:15%;left:5%;animation-delay:1s;">🎈</div>
   <div class="balloon" style="top:20%;right:8%;animation-delay:2s;">🎈</div>
-  <div class="balloon" style="bottom:15%;left:10%;animation-delay:1.5s;">🎈</div>
-  <div class="balloon" style="bottom:25%;right:5%;animation-delay:2s;">🎈</div>
+  <div class="balloon" style="bottom:15%;left:10%;animation-delay:1s;">🎈</div>
+  <div class="balloon" style="bottom:25%;right:5%;animation-delay:1.5s;">🎈</div>
   
   <div class="box">
     <h2>Happy Birthday, {{ name }}</h2>
-    <p>A special message from {{ owner }} 🎊</p>
-    <div id="message-block" class="message-block"></div>
+    <p>A special message from {{ owner }}:</p>
+    <div class="message-block">{{ message | safe }}</div>
     
     <div class="cake-area">
       <div class="candles">🕯️🕯️🕯️</div>
@@ -401,7 +405,7 @@ FINAL_HTML = """
 <body>
   <div class="wrap">
     <h1>Happy Birthday {{ name }} 🎉</h1>
-    <p>Congratulations on surviving another trip around the sun without being abducted by aliens 👽👻👾<br><br></p>
+    <p>Congratulations on surviving another trip around the sun without being abducted by aliens 👽👾👻<br><br></p>
     <p>All the best wishes from <b>{{ owner }}</b> 🤍</p>
     <div class="cake">🎂</div>
   </div>
@@ -443,39 +447,58 @@ FINAL_HTML = """
 </html>
 """
 
-@app.route('/', methods=['GET'])
+
+@app.route("/", methods=["GET"])
 def index():
-    error = request.args.get('error')
+    error = request.args.get("error")
     return render_template_string(LOGIN_HTML, owner=OWNER, error=error)
 
-@app.route('/greet', methods=['POST'])
+
+@app.route("/greet", methods=["POST"])
 def greet():
-    name = (request.form.get('name') or '').strip()
+    name = (request.form.get("name") or "").strip()
     normalized_name = name.lower()
 
     person_key = None
 
-    if normalized_name in ['fatemeh', 'فاطمه']:
-        person_key = 'fatemeh'
-    elif normalized_name in ['mohammad hassan', 'محمد حسن']:
-        person_key = 'mohammad_hassan'
-        
+    if normalized_name in [
+        "fatemeh", 
+        "فاطمه",
+        "فاطی",
+        "fati",
+        "fatima",
+    ]:
+        person_key = "fatemeh"
+    elif normalized_name in [
+        "mohammad hassan",
+        "محمد حسن",
+        "ممد",
+        "mmd hsn",
+        "mohamad",
+        "mmd",
+    ]:
+        person_key = "mohammad_hassan"
+
     if person_key:
         person_data = MESSAGES[person_key]
         return render_template_string(
-            GREET_HTML, 
-            name=person_data['name'], 
-            message=person_data['message'], 
-            owner=OWNER
+            GREET_HTML,
+            name=person_data["name"],
+            message=person_data["message"],
+            owner=OWNER,
         )
     else:
         error_msg = "This page isn't for you 😏🤔"
-        return redirect(url_for('index', error=error_msg))
+        return redirect(url_for("index", error=error_msg))
 
-@app.route('/finale')
+
+@app.route("/finale")
 def finale():
-    name = request.args.get('name', 'Friend')
+    name = request.args.get("name", "Friend")
     return render_template_string(FINAL_HTML, name=name, owner=OWNER)
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
+
+if __name__ == "__main__":
+    # This block is for LOCAL TESTING only.
+    # PythonAnywhere and Serv00 will IGNORE this.
+    app.run(host="0.0.0.0", port=8000, debug=True)
