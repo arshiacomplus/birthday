@@ -1,186 +1,414 @@
+<!-- Demo: https://nscl5.github.io/birthday -->
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Happy Birthday</title>
-  <style>
-    :root{--bg1:#fff7f3;--bg2:#fff6ff;--card:#ffffff;--accent:#ff6fb5;--accent2:#ffcc4d;--muted:#6b6b6b}
-    html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;color:#111;background:linear-gradient(180deg,var(--bg1),var(--bg2));-webkit-font-smoothing:antialiased}
-    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:28px}
-    .card{width:100%;max-width:820px;background:var(--card);border-radius:16px;padding:28px;box-shadow:0 18px 40px rgba(15,20,30,.08);border:1px solid rgba(0,0,0,.03)}
-    .intro{display:flex;gap:18px;align-items:flex-start}
-    h1{margin:0;font-size:24px;color:#111}
-    p{margin:6px 0 14px;color:var(--muted);line-height:1.5}
-    .form{display:flex;gap:10px;align-items:center;margin-top:8px}
-    input[type=text]{flex:1;padding:12px;border-radius:12px;border:1px solid rgba(0,0,0,.06);background:linear-gradient(180deg,#fff,#fff);color:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
-    button{padding:10px 14px;border-radius:12px;border:0;background:linear-gradient(90deg,var(--accent),#b86ce0);color:white;cursor:pointer;font-weight:600}
-    .error{color:#d23a4a;margin-top:10px}
-    .message{white-space:pre-wrap;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:linear-gradient(90deg,#fff6fb,#fffef7);padding:18px;border-radius:12px;margin-top:16px;border:1px solid rgba(0,0,0,.03);color:#222}
-    .cake{font-size:42px;text-align:center;margin-top:18px;line-height:1.1;white-space:pre-wrap}
-    .center{display:flex;gap:8px;align-items:center;justify-content:center;margin-top:12px}
-    .hidden{display:none}
-    .finalTitle{font-size:22px;margin:0}
-    .finalText{color:var(--muted);margin-top:8px;white-space:pre-wrap}
-    .confetti-piece{position:fixed;pointer-events:none;z-index:9999;top:-10px;opacity:0.95}
-    @keyframes fall {to{transform:translateY(110vh) rotate(360deg)}}
-    @media (max-width:420px){ .card{padding:18px} input[type=text]{padding:10px} button{padding:10px 12px} }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>A Message For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Poppins', sans-serif;
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 25%, #ff9a9e 50%, #fad0c4 75%, #ffd1ff 100%);
+    background-size: 400% 400%;
+    animation: gradientShift 15s ease infinite;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+    padding: 16px;
+  }
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  .card, .box, .wrap {
+    width: 100%;
+    max-width: 400px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 32px 24px;
+    border-radius: 20px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(255,255,255,0.3);
+    transition: opacity 0.5s, transform 0.5s;
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  .active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .confetti { position: absolute; width: 10px; height: 10px; background: #f0f; opacity: 0.8; animation: fall linear infinite; top: 0; pointer-events: none; }
+  @keyframes fall { 
+    from { transform: translateY(0) rotate(0deg); }
+    to { transform: translateY(100vh) rotate(720deg); } 
+  }
+  .confetti-area { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; pointer-events: none; }
+  h1, h2 {
+    margin: 0 0 10px;
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+  }
+  .intro-p {
+    margin: 0 0 20px;
+    line-height: 1.5;
+    color: #555;
+    text-align: center;
+    font-size: 14px;
+  }
+  label {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 600;
+  }
+  input[type=text] {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 12px;
+    border: 2px solid #e0e0e0;
+    background: #fff;
+    color: #333;
+    font-size: 15px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.3s;
+  }
+  input[type=text]:focus {
+    outline: none;
+    border-color: #ff9a9e;
+    box-shadow: 0 0 0 4px rgba(255, 154, 158, 0.1);
+  }
+  .btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px;
+    border-radius: 12px;
+    border: 0;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    color: white;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s;
+    font-family: 'Poppins', sans-serif;
+    box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 154, 158, 0.6);
+  }
+  .btn:active {
+    transform: translateY(0);
+  }
+  .error {
+    color: #e74c3c;
+    margin-top: 14px;
+    font-size: 13px;
+    text-align: center;
+    font-weight: 500;
+    display: none;
+  }
+  .emoji { font-size: 42px; text-align: center; margin-bottom: 14px; animation: bounce 2s infinite; }
+  @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+  .box { max-width: 480px; padding: 28px 20px; }
+  .box h2 { font-size: 26px; margin: 0 0 8px; }
+  .box .intro-p { margin: 0 0 16px; }
+  .message-block {
+    white-space: pre-wrap;
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, rgba(255,154,158,0.1), rgba(250,208,196,0.1));
+    padding: 18px;
+    border-radius: 14px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #333;
+    border: 2px solid rgba(255,154,158,0.2);
+    min-height: 120px;
+    text-align: left;
+  }
+  .cake-area {
+    text-align: center;
+    margin: 20px 0 16px;
+  }
+  .cake { font-size: 5rem; animation: cakeBounce 2s infinite; }
+  @keyframes cakeBounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .candles {
+    font-size: 2.8rem;
+    letter-spacing: 6px;
+    margin-top: -20px;
+    animation: flicker 1.5s infinite alternate;
+  }
+  @keyframes flicker { 0% { opacity: 1; } 100% { opacity: 0.8; } }
+  .action {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .btn.wide {
+    width: auto;
+    display: inline-block;
+    padding: 13px 24px;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(255, 154, 158, 0.4);
+  }
+  .balloon { position: absolute; font-size: 2.5rem; animation: float 6s ease-in-out infinite; opacity: 0; }
+  @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-30px) rotate(10deg); } }
+
+  /* FINAL styles */
+  .wrap { max-width: 480px; padding: 36px 28px; }
+  .final-title {
+    margin: 0 0 10px;
+    font-size: 30px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #ff9a9e, #fad0c4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: titlePulse 2s infinite;
+  }
+  @keyframes titlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+  .final-p {
+    margin: 0 0 16px;
+    font-size: 17px;
+    color: #555;
+    font-weight: 500;
+  }
+  .final-cake {
+    font-size: 6rem;
+    margin-top: 16px;
+    animation: cakeSpin 3s ease-in-out infinite;
+  }
+  @keyframes cakeSpin { 
+    0%, 100% { transform: rotate(0deg) scale(1); } 
+    25% { transform: rotate(-10deg) scale(1.1); }
+    75% { transform: rotate(10deg) scale(1.1); }
+  }
+
+  .hidden { display: none !important; }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card" id="card">
-      <div id="intro">
-        <div class="intro">
-          <div>
-            <h1>Hello 👋</h1>
-            <p>This is a small birthday surprise prepared by me. Just type your first-name and open it.</p>
-            <div id="step1">
-              <div class="form">
-                <input id="nameInput" name="name" type="text" placeholder="name..." autocomplete="off" required>
-                <button id="openBtn" type="button">Open</button>
-              </div>
-              <div id="err" class="error hidden">This page is not for you 😏.</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div id="step2" class="hidden">
-        <div class="message" id="messageBlock"></div>
-        <div class="center">
-          <button id="blowBtn" type="button">a small message from arshia</button>
-        </div>
-        <div class="cake" id="cakeBlock"></div>
-      </div>
+  <div id="confetti-area" class="confetti-area"></div>
+  <div class="balloon" id="b1" style="top:15%;left:5%;animation-delay:1s;">🎈</div>
+  <div class="balloon" id="b2" style="top:20%;right:8%;animation-delay:2s;">🎈</div>
+  <div class="balloon" id="b3" style="bottom:15%;left:10%;animation-delay:1s;">🎈</div>
+  <div class="balloon" id="b4" style="bottom:25%;right:5%;animation-delay:1.5s;">🎈</div>
 
-      <div id="final" class="hidden">
-        <h2 class="finalTitle" id="finalTitle"></h2>
-        <p class="finalText" id="finalText"></p>
-        <div class="cake" id="smallCake"></div>
-      </div>
+  <div class="card active" id="stage1">
+    <div class="emoji">🎁</div>
+    <h1>Hello dear</h1>
+    <p class="intro-p">This is a small birthday surprise prepared by Arshia. Please enter your first-name to continue.</p>
+    <div>
+      <label for="nameInput">Your name:</label>
+      <input id="nameInput" type="text" autocomplete="off" required>
+      <button class="btn" id="openBtn" type="button">Open Your Gift 🎉</button>
+    </div>
+    <div class="error" id="errorMsg">This page isn't for you 😏🤔</div>
+  </div>
 
+  <div class="box hidden" id="stage2">
+    <h2 id="greetTitle"></h2>
+    <p class="intro-p">A special message from Arshia:</p>
+    <div class="message-block" id="messageBlock"></div>
+    
+    <div class="cake-area">
+      <div class="candles" id="candles">🕯️🕯️🕯️</div>
+      <div class="cake" id="cake">🎂</div>
+    </div>
+    
+    <div class="action">
+      <button class="btn wide" id="finaleBtn">Make a wish and blow out the candles</button>
     </div>
   </div>
 
-  <script>
-
-    const FULL = {
-      fatemeh: `
+  <div class="wrap hidden" id="stage3">
+    <h1 class="final-title" id="finalTitle"></h1>
+    <p class="final-p">Congratulations on surviving another trip around the sun without being abducted by aliens 👽👾👻<br><br></p>
+    <p class="final-p">All the best wishes from <b>Arshia</b> 🤍</p>
+    <div class="final-cake">🎂</div>
+  </div>
+  
+<script>
+  const OWNER = "Arshia";
+  const MESSAGES = {
+    fatemeh: {
+      name: "Fatemeh",
+      message: `Happy Birthday, Fatemeh 🥳
 
 It's been so great getting to know you in our class. You're a wonderful friend. 
-I hope you have an amazing day and a fantastic year ahead, full of happiness, health, and success!
+I hope you have an amazing day and a fantastic year ahead, full of happiness, health, and success ✨💛`,
+    },
+    mohammad_hassan: {
+      name: "Mohammad Hassan",
+      message: `Happy Birthday, Mohammad Hassan 🎉
 
-All the best wishes from Arshia ✨💛`,
+Man, it's been fun having you in class all this time. You're a great guy. 
+Wishing you a very happy birthday and an awesome year. Hope it's filled with good times and new achievements.
+      
+Cheers 🤍🍻`,
+    },
+  };
 
-      mohammad: `
+  const ALIASES = {
+    "fatemeh": ["fatemeh", "فاطمه", "فاطی", "fati", "fatima", "fãtemeh", "fatma"],
+    "mohammad_hassan": ["mohammad hassan", "محمد حسن", "ممد", "mmd hsn", "mohamad", "mmd", "mohammad", "mohammadhasan", "moham", "محمد"],
+  };
 
-Man, it's been fun having you in class all this time. You're a great guy! 
-Wishing you a very happy birthday and an awesome year. Hope it's filled with good times and new achievements, Cheers 🥂
+  function q(id) { return document.getElementById(id); }
 
-All the best wishes from Arshia 🤍`
-    };
+  function normalizeName(raw) {
+    return String(raw || '').trim().toLowerCase().replace(/\u200c/g, ' ').replace(/\s+/g, ' ').normalize('NFKC');
+  }
 
-    const PREVIEW = {
-      fatemeh: `Dear Fatemeh,
-
-Yesss, you found it!, Make a wish and blow out the candles`,
-      mohammad: `Dear Mohammad Hassan,
-
-Yesss, you found it! Make a wish and blow out the candles`
-    };
-
-    const MESSAGES = {
-      fatemeh: {
-        title: 'Happy Birthday, Fatemeh 🥳🎉',
-        preview: PREVIEW.fatemeh,
-        full: FULL.fatemeh,
-        cake: '🎂\n🕯️🕯️🕯️',
-        finalCake: '🎂🎁🎈',
-        confettiColors: ['#FF6FB5','#FFD2EA','#FFCC4D','#FFD6F0']
-      },
-      mohammad: {
-        title: 'Happy Birthday, Mohammad Hassan 🥳🎊',
-        preview: PREVIEW.mohammad,
-        full: FULL.mohammad,
-        cake: '🎂\n🕯️🕯️🕯️',
-        finalCake: '🎂🎉🍻',
-        confettiColors: ['#7CE3B6','#9AD2FF','#C89BFF','#FFD66B']
-      }
-    };
-
-    const fatemehKeys = new Set(['fatemeh','فاطمه','fãtemeh','fatma','fateme']);
-    const mohKeys = new Set(['mohammad hassan','mohammadhassan','mohammad','mohammadhasan','mohamad','محمد حسن','محمد','moham']);
-
-    function normalize(s){ return String(s||'').trim().toLowerCase().replace(/\u200c/g,' ').replace(/\s+/g,' ').normalize('NFKC') }
-
-    function matchName(raw){
-      const n = normalize(raw);
-      if(!n) return null;
-      if(fatemehKeys.has(n)) return 'fatemeh';
-      if(mohKeys.has(n)) return 'mohammad';
-      if(n.includes('فاطمه')) return 'fatemeh';
-      if(n.includes('fatemeh')) return 'fatemeh';
-      if(n.includes('محمد')) return 'mohammad';
-      if(n.includes('mohammad') || n.includes('moham') || n.includes('moh')) return 'mohammad';
-      return null;
-    }
-
-    function q(id){ return document.getElementById(id) }
-
-    document.getElementById('openBtn').addEventListener('click', function () {
-      const raw = q('nameInput').value;
-      const matched = matchName(raw);
-      if(!matched){
-        q('err').classList.remove('hidden');
-        return;
-      }
-      q('err').classList.add('hidden');
-      q('intro').classList.add('hidden');
-      q('step2').classList.remove('hidden');
-      const data = MESSAGES[matched];
-      q('messageBlock').textContent = data.preview;
-      q('cakeBlock').textContent = data.cake;
-      q('openBtn').disabled = true;
-      q('openBtn').dataset.matched = matched;
-    });
-
-    q('blowBtn').addEventListener('click', ()=>{
-      q('step2').classList.add('hidden');
-      q('final').classList.remove('hidden');
-      const matched = q('openBtn').dataset.matched || matchName(q('nameInput').value) || 'fatemeh';
-      const data = MESSAGES[matched];
-      q('finalTitle').textContent = data.title;
-      q('finalText').textContent = data.full;
-      q('smallCake').textContent = data.finalCake;
-      launchConfetti(data.confettiColors);
-      q('blowBtn').disabled = true;
-    });
-
-    (function(){
-      const params = new URLSearchParams(location.search);
-      const pre = params.get('name');
-      if(pre){ q('nameInput').value = pre; }
-    })();
-
-    function rand(min,max){return Math.floor(Math.random()*(max-min+1))+min}
-    function launchConfetti(colors){
-      const palette = colors && colors.length? colors : ['#FF6FB5','#FFD66B','#7CE3B6','#9AD2FF','#C89BFF'];
-      for(let i=0;i<40;i++){
-        const el=document.createElement('div');
-        el.className='confetti-piece';
-        el.style.left=rand(5,95)+'vw';
-        el.style.background=palette[rand(0,palette.length-1)];
-        el.style.width=rand(6,12)+'px';
-        el.style.height=rand(10,18)+'px';
-        el.style.borderRadius=rand(0,50)+'%';
-        el.style.transform='rotate('+rand(0,360)+'deg)';
-        el.style.animation='fall '+(4+Math.random()*2)+'s linear forwards';
-        el.style.animationDelay=(Math.random()*0.2)+'s';
-        document.body.appendChild(el);
-        setTimeout(()=>el.remove(),7000);
+  function matchName(raw) {
+    const n = normalizeName(raw);
+    for (const key in ALIASES) {
+      if (ALIASES[key].includes(n)) {
+        return key;
       }
     }
-  </script>
+    if (n.includes('fatemeh') || n.includes('فاطمه')) return 'fatemeh';
+    if (n.includes('mohammad') || n.includes('محمد')) return 'mohammad_hassan';
+    return null;
+  }
+
+  function typeWriter(element, text, speed = 40) {
+    let i = 0;
+    element.textContent = ''; 
+    return new Promise(resolve => {
+      function typing() {
+        if (i < text.length) {
+          element.textContent += text.charAt(i);
+          i++;
+          setTimeout(typing, speed);
+        } else {
+          resolve();
+        }
+      }
+      typing();
+    });
+  }
+
+  function initConfettiLogin() {
+    const confettiArea = q('confetti-area');
+    for(let i=0;i<70;i++){
+      const c=document.createElement('div');
+      c.className='confetti';
+      c.style.left=Math.random()*100+'%';
+      c.style.top = Math.random() * -20 + 'px';
+      c.style.background=['#ff6b6b','#4ecdc4','#ffe66d','#a8e6cf','#ffd3b6'][Math.floor(Math.random()*5)];
+      c.style.animationDuration=(Math.random()*4+3)+'s';
+      c.style.animationDelay=Math.random()*3+'s';
+      confettiArea.appendChild(c);
+    }
+  }
+
+  q('openBtn').addEventListener('click', () => {
+    const nameInput = q('nameInput').value;
+    const matchedKey = matchName(nameInput);
+    
+    if (matchedKey) {
+      q('errorMsg').style.display = 'none';
+      const data = MESSAGES[matchedKey];
+  
+      q('stage1').classList.remove('active');
+      q('stage1').classList.add('hidden');
+  
+      q('confetti-area').classList.add('hidden');
+
+      q('greetTitle').textContent = data.name;
+      q('stage2').dataset.name = data.name;
+      
+      q('stage2').classList.remove('hidden');
+      setTimeout(() => {
+        q('stage2').classList.add('active');
+        q('b1').style.opacity = q('b2').style.opacity = q('b3').style.opacity = q('b4').style.opacity = 1;
+
+        typeWriter(q('messageBlock'), data.message);
+      }, 500); 
+
+    } else {
+      q('errorMsg').style.display = 'block';
+    }
+  });
+
+  q('finaleBtn').addEventListener('click', () => {
+    const userName = q('stage2').dataset.name || "Friend";
+
+    q('stage2').classList.remove('active');
+    q('stage2').classList.add('hidden');
+
+    q('b1').style.opacity = q('b2').style.opacity = q('b3').style.opacity = q('b4').style.opacity = 0;
+
+    q('finalTitle').textContent = `Happy Birthday ${userName} 🎉`;
+    
+    q('stage3').classList.remove('hidden');
+    setTimeout(() => {
+      q('stage3').classList.add('active');
+      launchConfettiFinale();
+    }, 500);
+  });
+
+  function launchConfettiFinale() {
+    function shootConfetti() {
+      confetti({
+        particleCount: 200,
+        spread: 120,
+        origin: { y: 0.5 },
+        colors: ['#ff9a9e', '#fad0c4', '#ffecd2', '#fcb69f', '#ffd1ff', '#ff6b6b', '#ffe66d']
+      });
+    }
+    
+    shootConfetti();
+    setTimeout(shootConfetti, 400);
+    setTimeout(shootConfetti, 800);
+
+    const continuous = setInterval(function() {
+      if (document.body.contains(q('stage3'))) {
+        confetti({
+          particleCount: 3,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+          colors: ['#ff9a9e', '#fad0c4', '#ffecd2']
+        });
+        confetti({
+          particleCount: 3,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+          colors: ['#fcb69f', '#ffd1ff', '#ff6b6b']
+        });
+      } else {
+        clearInterval(continuous);
+      }
+    }, 250);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initConfettiLogin();
+
+    const params = new URLSearchParams(window.location.search);
+    const prefilledName = params.get('name');
+    if (prefilledName) {
+      q('nameInput').value = prefilledName;
+    }
+  });
+</script>
 </body>
 </html>
