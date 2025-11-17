@@ -300,7 +300,7 @@ GREET_HTML = """
 
   <div class="box">
     <p>From {{ owner }}:</p>
-    <div class="message-block">{{ message | safe }}</div>
+    <div class="message-block" id="message-block"></div>
 
     <div class="cake-area">
       <div class="candles">🕯️🕯️🕯️</div>
@@ -314,9 +314,13 @@ GREET_HTML = """
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      const message = `{{ message }}`;
+      const balloons = document.querySelectorAll('.balloon');
+      balloons.forEach(b => b.style.opacity = 1);
+
+      const message = {{ message | tojson }};
       const messageBlock = document.getElementById('message-block');
       let i = 0;
+      
       function typeWriter() {
         if (i < message.length) {
           messageBlock.innerHTML += message.charAt(i);
@@ -324,7 +328,10 @@ GREET_HTML = """
           setTimeout(typeWriter, 40);
         }
       }
-      typeWriter();
+      
+      if (messageBlock) {
+          typeWriter();
+      }
     });
   </script>
 </body>
