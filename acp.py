@@ -1,7 +1,19 @@
 # Demo: https://arshiastest.pythonanywhere.com
 # It can be deployed on "PythonAnywhere" and "Serv00".
 from flask import Flask, request, render_template_string, redirect, url_for
+
+
+class PrefixMiddleware(object):
+    def __init__(self, app, prefix=''):
+        self.app = app
+        self.prefix = prefix
+
+    def __call__(self, environ, start_response):
+        environ['SCRIPT_NAME'] = self.prefix
+        return self.app(environ, start_response)
+
 app = Flask(__name__)
+app.wsgi_app = PrefixMiddleware(app.wsgi_app, prefix='/birthday-acp')
 OWNER = "Arshia"
 MESSAGES = {
     "fatemeh": {
@@ -145,7 +157,7 @@ LOGIN_HTML = """
     <div class="emoji">🎁</div>
     <h1>Hello dear</h1>
     <p>This is a small birthday surprise prepared by {{ owner }}. Please enter your name to continue.</p>
-    <form method="post" action="/greet">
+    <form method="post" action="/birthday-acp/greet">
       <label for="name">Your name:</label>
       <input id="name" name="name" type="text" autocomplete="off" required>
       <button class="btn" type="submit">Open Your Gift 🎉</button>
@@ -169,8 +181,6 @@ LOGIN_HTML = """
 </body>
 </html>
 """
-
-# (این بخشی از کد acp.py شماست، فقط GREET_HTML را جایگزین کنید)
 
 GREET_HTML = """
 <!doctype html>
@@ -210,9 +220,7 @@ GREET_HTML = """
 </style>
 </head>
 <body>
-  <audio id="background-music" loop>
-    <source src="{{ url_for('static', filename='h.mp3') }}"  type="audio/mpeg">
-  </audio>
+
   <div class="balloon" style="top:15%;left:5%;animation-delay:1s;">🎈</div>
   <div class="balloon" style="top:20%;right:8%;animation-delay:2s;">🎈</div>
   <div class="balloon" style="bottom:15%;left:10%;animation-delay:1s;">🎈</div>
@@ -253,29 +261,15 @@ GREET_HTML = """
       const volumeBar = document.getElementById('volume-bar');
       const volumeContainer = document.getElementById('volume-meter-container');
       const finalUrl = "{{ url_for('finale', name=name) }}";
-      const music = document.getElementById('background-music');
 
       let audioContext;
-      let hasInteracted = false;
 
-      function startMusic() {
-        if (!hasInteracted) {
-          music.play();
-          hasInteracted = true;
-        }
-      }
+      // تابع برای رفتن به صفحه بعد
       function goToNextPage() {
-        localStorage.setItem('musicTime', music.currentTime);
         window.location.href = finalUrl;
       }
 
-      fallbackLink.addEventListener('click', (e) => {
-        e.preventDefault();
-        startMusic();
-        goToNextPage();
-      });
       blowBtn.addEventListener('click', () => {
-          startMusic();
           if (!audioContext) {
               audioContext = new (window.AudioContext || window.webkitAudioContext)();
           }
@@ -301,7 +295,7 @@ GREET_HTML = """
                   const bufferLength = analyser.frequencyBinCount;
                   const dataArray = new Uint8Array(bufferLength);
 
-                  const THRESHOLD = 4500;
+                  const THRESHOLD = 5500;
                   const REQUIRED_BLOW_FRAMES = 10;
                   let blowDetectedFrames = 0;
                   let isBlown = false;
@@ -316,7 +310,6 @@ GREET_HTML = """
                       }
                       const volume = sum;
 
-                      // به‌روزرسانی نمایشگر حجم صدا (برای دیدن، آستانه را در 200 در نظر بگیرید)
                       const volumePercentage = Math.min(100, (volume / 2));
                       if (volumeBar) {
                           volumeBar.style.width = volumePercentage + '%';
@@ -463,14 +456,28 @@ FINAL_HTML = """
     document.addEventListener('DOMContentLoaded', function() {
       const music = document.getElementById('background-music');
       const savedTime = localStorage.getItem('musicTime');
-
-      if (savedTime) {
-        music.currentTime = parseFloat(savedTime);
+      let hasInteracted = false;
+      
+      function startMusic() {
+        if (!hasInteracted) {
+          // اگر زمان ذخیره شده وجود دارد، از آن استفاده کن
+          if (savedTime) {
+            music.currentTime = parseFloat(savedTime);
+          }
+          
+          // سعی کن موسیقی را پخش کن
+          music.play().catch(e => console.error("Autoplay was prevented:", e));
+          hasInteracted = true;
+        }
       }
 
-      setTimeout(() => {
-        music.play().catch(e => console.error("Autoplay was prevented:", e));
-      }, 100);
+      // شروع پخش موسیقی با کمی تأخیر
+      setTimeout(startMusic, 100);
+
+      // ذخیره زمان موسیقی قبل از ترک صفحه
+      window.addEventListener('beforeunload', function() {
+        localStorage.setItem('musicTime', music.currentTime);
+      });
 
       function shootConfetti() {
         confetti({
@@ -547,7 +554,9 @@ def greet():
 def finale():
     name = request.args.get("name", "Friend")
     return render_template_string(FINAL_HTML, name=name, owner=OWNER)
+
 if __name__ == "__main__":
     # This block is for LOCAL TESTING only.
     # PythonAnywhere and Serv00 will IGNORE this.
-    app.run(host="0.0.0.0", port=8000, debug=True,ssl_context='adhoc')
+    # app.run(host="0.0.0.0", port=8000, debug=False,ssl_context='adhoc')
+    app.run(host="0.0.0.0", port=8076, debug=False)
